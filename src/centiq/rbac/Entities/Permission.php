@@ -13,14 +13,13 @@ class Permission extends Node
 {
 	/**
 	 * Create a new permission entity
-	 * @param  Centiq\RBAC\Manager $manager     RBAC Manager
-	 * @param  String              $name        Name of the leaf
-	 * @param  String              $description Description
-	 * @param  Integer             $parent      Parent permission
-	 * @return Centiq\RBAC\Entities\Permission  Permission class
+	 * @param  Centiq\RBAC\Manager $manager      RBAC Manager
+	 * @param  String              $name         Name of the leaf
+	 * @param  String              $description  Description
+	 * @param  Integer             $parent       Parent permission
+	 * @return \Centiq\RBAC\Entities\Permission  Permission class
 	 */
-	public static function create(
-		\Centiq\RBAC\Manager $manager, $name, $description, Permission $parent)
+	public static function create(\Centiq\RBAC\Manager $manager, $name, $description, Permission $parent)
 	{
 		/**
 		 * Add the Permission to the database
@@ -77,6 +76,9 @@ class Permission extends Node
 		$this->update();
 	}
 
+	/**
+	 * Populate the class data
+	 */
 	public function update()
 	{
 		/**
@@ -85,12 +87,8 @@ class Permission extends Node
 		$permission = $this->manager->getStore()->getPermission($this->id());
 
 		/**
-		 * Set the parameters
+		 * Update the node
 		 */
-		$this->id 			= (int)$permission['id'];
-		$this->left 		= (int)$permission['left'];
-		$this->right 		= (int)$permission['right'];
-		$this->title 		= $permission['title'];
-		$this->description 	= $permission['description'];
+		parent::update($permission);
 	}
 }

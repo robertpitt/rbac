@@ -9,6 +9,9 @@
  */
 namespace Centiq\RBAC\Entities;
 
+/**
+ * Base node class
+ */
 abstract class Node
 {
 	/**
