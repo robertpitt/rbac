@@ -50,47 +50,13 @@ class Permission extends Node
 		return new self($manager, $permission_id);
 	}
 
-	/**
-	 * Manager Object
-	 * @var \Centiq\RBAC\Manager
-	 */
-	protected $mananger;
-
-	/**
-	 * Permission constructor
-	 */
-	public function __construct(\Centiq\RBAC\Manager $manager, $permission_id)
-	{
-		/**
-		 * Set the ID
-		 */
-		$this->id = $permission_id;
-
-		/**
-		 * Set the manager object
-		 */
-		$this->manager = $manager;
-
-		/**
-		 * Populate
-		 */
-		$this->update();
-	}
-
 	public function update()
 	{
 		/**
-		 * Fetch the permission from the storage
+		 * UYpdate
 		 */
-		$permission = $this->manager->getStore()->getPermission($this->id());
-
-		/**
-		 * Set the parameters
-		 */
-		$this->id 			= (int)$permission['id'];
-		$this->left 		= (int)$permission['left'];
-		$this->right 		= (int)$permission['right'];
-		$this->title 		= $permission['title'];
-		$this->description 	= $permission['description'];
+		parent::update(
+			$this->manager->getStore()->getPermission($this->id())
+		);
 	}
 }

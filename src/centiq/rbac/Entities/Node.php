@@ -41,6 +41,30 @@ abstract class Node
 	 */
 	protected $description;
 
+
+	/**
+	 * Node constructor
+	 * @param \Centiq\RBAC\Manager $manager       [description]
+	 * @param [type]            $permission_id [description]
+	 */
+	public function __construct(\Centiq\RBAC\Manager $manager, $node_id)
+	{
+		/**
+		 * Set the manager object
+		 */
+		$this->manager = $manager;
+		
+		/**
+		 * Set the ID
+		 */
+		$this->id = $node_id;
+
+		/**
+		 * Populate
+		 */
+		$this->update();
+	}
+
 	/**
 	 * Update the class with data from the arguments
 	 * @param  Array $node_data Node Data
@@ -110,5 +134,34 @@ abstract class Node
 	public function isLeaf()
 	{
 		return ($this->left() - $this->right()) === 1;
+	}
+
+	/**
+	 * Returnt the amount of children
+	 * @return Integer
+	 */
+	public function childrenLength()
+	{
+		return (($this->right() - $this->left()) - 1) / 2;
+	}
+
+	/**
+	 * Check to see if this node is a descendant of another node
+	 * @param  Node    $node Other Node
+	 * @return boolean
+	 */
+	public function isDescendantOf(Node $node)
+	{
+		return $node->left() < $this->left() && $this->left() < $node->right();
+	}
+
+	/**
+	 * Check to see if this node is a ancestor of another node
+	 * @param  Node    $node Other Node
+	 * @return boolean
+	 */
+	public function isAncestorOf(Node $node)
+	{
+		return $this->left() < $node->left() && $node->left() < $this->right();
 	}
 }
