@@ -1,0 +1,19 @@
+{
+    "name": "centiq/rbac",
+    "description": "RBAC Authorization library",
+    "license": "GPL",
+    "autoload" : {
+        "psr-4": {
+            "Centiq\\RBAC\\": "src/centiq/rbac"
+        }
+    },
+    "authors": [
+        {
+            "name": "Robert Pitt",
+            "email": "rpitt@centiq.co.uk"
+        }
+    ],
+    "require": {
+
+    }
+}
