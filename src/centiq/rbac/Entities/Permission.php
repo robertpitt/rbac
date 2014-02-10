@@ -9,7 +9,7 @@
  */
 namespace Centiq\RBAC\Entities;
 
-class Permission
+class Permission extends Node
 {
 	/**
 	 * Create a new permission entity
@@ -57,36 +57,6 @@ class Permission
 	protected $mananger;
 
 	/**
-	 * Permission ID
-	 * @var Integer
-	 */
-	protected $id;
-
-	/**
-	 * Left position of Permission
-	 * @var Integer
-	 */
-	protected $left;
-
-	/**
-	 * Right position of Permission
-	 * @var Integer
-	 */
-	protected $right;
-
-	/**
-	 * Permission title
-	 * @var String
-	 */
-	protected $title;
-
-	/**
-	 * Permission Descriotion
-	 * @var String
-	 */
-	protected $description;
-
-	/**
 	 * Permission constructor
 	 */
 	public function __construct(\Centiq\RBAC\Manager $manager, $permission_id)
@@ -122,59 +92,5 @@ class Permission
 		$this->right 		= (int)$permission['right'];
 		$this->title 		= $permission['title'];
 		$this->description 	= $permission['description'];
-	}
-
-	/**
-	 * Return the permission identification
-	 * @return Integer
-	 */
-	public function id()
-	{
-		return $this->id;
-	}
-
-	/**
-	 * Return the left position for the permission tree
-	 * @return Integer
-	 */
-	public function left()
-	{
-		return $this->left;
-	}
-
-	/**
-	 * Return the right position for the permission tree
-	 * @return Integer
-	 */
-	public function right()
-	{
-		return $this->right;
-	}
-
-	/**
-	 * Permission Title
-	 * @return String
-	 */
-	public function title()
-	{
-		return $this->title;
-	}
-
-	/**
-	 * Permission Description
-	 * @return String
-	 */
-	public function description()
-	{
-		return $this->description;
-	}
-
-	/**
-	 * Check to see if the permission has children
-	 * @return boolean
-	 */
-	public function isLeaf()
-	{
-		return ($this->left() - $this->right()) === 1;
 	}
 }

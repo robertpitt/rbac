@@ -9,7 +9,7 @@
  */
 namespace Centiq\RBAC\Entities;
 
-class Role
+class Role extends Node
 {
 	/**
 	 * Create a new role entity
@@ -57,36 +57,6 @@ class Role
 	protected $mananger;
 
 	/**
-	 * Role ID
-	 * @var Integer
-	 */
-	protected $id;
-
-	/**
-	 * Left position of role
-	 * @var Integer
-	 */
-	protected $left;
-
-	/**
-	 * Right position of role
-	 * @var Integer
-	 */
-	protected $right;
-
-	/**
-	 * Role title
-	 * @var String
-	 */
-	protected $title;
-
-	/**
-	 * Role Descriotion
-	 * @var String
-	 */
-	protected $description;
-
-	/**
 	 * Role constructor
 	 */
 	public function __construct(\Centiq\RBAC\Manager $manager, $role_id)
@@ -115,67 +85,9 @@ class Role
 		$role = $this->manager->getStore()->getRole($this->id());
 
 		/**
-		 * Set the parameters
+		 * Update the node
 		 */
-		$this->id 			= (int)$role['id'];
-		$this->left 		= (int)$role['left'];
-		$this->right 		= (int)$role['right'];
-		$this->title 		= $role['title'];
-		$this->description 	= $role['description'];
-	}
-
-	/**
-	 * Return the role identification
-	 * @return Integer
-	 */
-	public function id()
-	{
-		return $this->id;
-	}
-
-	/**
-	 * Return the left position for the role tree
-	 * @return Integer
-	 */
-	public function left()
-	{
-		return $this->left;
-	}
-
-	/**
-	 * Return the right position for the role tree
-	 * @return Integer
-	 */
-	public function right()
-	{
-		return $this->right;
-	}
-
-	/**
-	 * Role Title
-	 * @return String
-	 */
-	public function title()
-	{
-		return $this->title;
-	}
-
-	/**
-	 * Role Description
-	 * @return String
-	 */
-	public function description()
-	{
-		return $this->description;
-	}
-
-	/**
-	 * Check to see if the role has children
-	 * @return boolean
-	 */
-	public function isLeaf()
-	{
-		return ($this->left() - $this->right()) === 1;
+		parent::update($role);
 	}
 
 	public function getDecendents()
