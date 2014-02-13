@@ -37,7 +37,7 @@ class Role extends Node
 		/**
 		 * Set the initial manager and identifer
 		 */
-		parent::__construct($manager, $id);
+		parent::__construct($manager, $id, "roles");
 
 		/**
 		 * Load the data
@@ -102,10 +102,7 @@ class Role extends Node
 		return new self($this->manager, $role);
 	}
 
-	/**
-	 * Return a list of children including the current node
-	 */
-	public function getSelfAndDescendants()
+	public function getChildren()
 	{
 		/**
 		 * Fetch the roles

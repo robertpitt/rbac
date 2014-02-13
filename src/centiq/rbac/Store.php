@@ -131,6 +131,31 @@ class Store implements Interfaces\Store
     	return $statement->fetchAll(\PDO::FETCH_ASSOC);
 	}
 
+	public function getChildPermissions($id, $inc_self = false)
+	{
+		$statement = $this->database->prepare("
+			SELECT c.*
+			FROM {$this->prefix}permissions as p
+			JOIN {$this->prefix}permissions as c on (c.`left` " . ($inc_self ? ">=" : ">") . " p.`left` and c.`right` ". ($inc_self ? "<=" : "<") ." p.`right`)
+			WHERE p.id = :id
+    	");
+
+    	/**
+    	 * Bind the parent node identity
+    	 */
+    	$statement->bindParam(":id", $id);
+
+    	/**
+    	 * Execute
+    	 */
+    	$statement->execute();
+
+    	/**
+    	 * Return the list of arrays
+    	 */
+    	return $statement->fetchAll(\PDO::FETCH_ASSOC);
+	}
+
 	/**
 	 * Delete a role
 	 * @param  Intiger|String $role Role id or role name

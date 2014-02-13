@@ -50,13 +50,64 @@ class Permission extends Node
 		return new self($manager, $permission_id);
 	}
 
-	public function update()
+	public function __construct(\Centiq\RBAC\Manager $manager, $id, $data = null)
 	{
 		/**
-		 * UYpdate
+		 * Set the initial manager and identifer
 		 */
-		parent::update(
-			$this->manager->getStore()->getPermission($this->id())
-		);
+		parent::__construct($manager, $id);
+
+		/**
+		 * Load the data
+		 */
+		$this->update($data);
+	}
+
+	public function update(array $data = null)
+	{
+		/**
+		 * If we don't have any initialization datam fetch it from the id
+		 */
+		if($data === null)
+		{
+			$data = $this->manager->getStore()->getPermission($this->id());
+		}
+
+		/**
+		 * Set the parameters
+		 */
+		$this->id 			= (int)$data['id'];
+		$this->left 		= (int)$data['left'];
+		$this->right 		= (int)$data['right'];
+		$this->title 		= $data['title'];
+		$this->description 	= $data['description'];
+	}
+
+	public function createChild($title, $description)
+	{
+		/**
+		 * Insert the entity into the tree
+		 */
+		$role = $this->manager->getStore()->createPermission($title, $description, $this->id());
+
+		/**
+		 * Return a new instance of the Role object
+		 */
+		return new self($this->manager, $role);
+	}
+
+	public function getChildren()
+	{
+		/**
+		 * Fetch the permissions
+		 */
+		$permissions = $this->manager->getStore()->getChildPermissions($this->id(), true);
+
+		/**
+		 * Map the roles into new instances
+		 */
+		return array_map(function($r){
+			return new Permission($this->manager, $r['id'], $r);
+		}, $permissions);
 	}
 }

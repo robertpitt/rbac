@@ -44,7 +44,6 @@ abstract class Node
 	 */
 	protected $description;
 
-
 	/**
 	 * Node constructor
 	 * @param \Centiq\RBAC\Manager $manager       [description]
@@ -67,6 +66,8 @@ abstract class Node
 	 * Abstract method for updating the node, higher level specific
 	 */
 	abstract public function update();
+	abstract public function createChild($title, $description);
+	abstract public function getChildren();
 
 	/**
 	 * Return the permission identification
