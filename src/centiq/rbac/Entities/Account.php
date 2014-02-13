@@ -31,6 +31,13 @@ class Account
 		 * @var Integer
 		 */
 		$this->id = $id;
+
+		/**
+		 * 1. Populate all role ids connected to this account
+		 * 1a. - The rolese should be a listed of ids accross the whole tree
+		 * 2. Populate all permissions connected to this account.
+		 * 2a. The permissions should be a list of ids accroos the whole tre
+		 */
 	}
 
 	/**
@@ -43,34 +50,9 @@ class Account
 	}
 
 	/**
-	 * Fetch the roles
-	 * @return Array<Role> Returns an array of roles
+	 * Detect if the account is connected to a specific role
 	 */
-	public function getRoles()
+	public function hasRole($entity)
 	{
-		return $this->manager->getStore()->getRoles($this->id);
-	}
-
-	/**
-	 * Check to see if the account has access to a role, or is within it it's parents.
-	 * @return boolean
-	 */
-	public function hasRole(Role $role_id)
-	{
-		return $this->manager->getStore()->hasRole($this->id, $role_id);
-	}
-
-	/**
-	 * Return a list of permissions for this account
-	 * @return Array<Permission>
-	 */
-	public function getPermissions()
-	{
-
-	}
-
-	public function hasPermission()
-	{
-		
 	}
 }

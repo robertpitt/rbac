@@ -14,19 +14,18 @@ namespace Centiq\RBAC\Interfaces;
  */
 interface Store
 {
-	//Resolvers
-	public function resolveRole($name);
-	public function resolvePermission($name);
+	//Resolve an identifer into a primary idnetifer
+	public function resolve($type, $identifer);
 
 	// Roles
-	public function getRole($role_id);
-	public function getRoleChildren($role_id);
 	public function createRole($name, $description, $parent);
-	public function assignRole($account_id, $role_id);
+	public function getRole($id);
+	public function updateRole($id, $title, $description);
+	public function deleteRole($id);
 
 	//Permissions
-	public function getPermission($permissions_id);
-	public function getPermissionChildren($permissions_id);
-	public function createPermission($title, $description, $parent);
-	public function assignPermission($role_id, $permissions_id);
+	public function createPermission($name, $description, $parent);
+	public function getPermission($id);
+	public function updatePermission($id, $title, $description);
+	public function deletePermission($id);
 }

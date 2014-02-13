@@ -51,15 +51,15 @@ class Manager
 
 	/**
 	 * RBAC Manager Constructor
-	 * @param Centiq\RBAC\Interfaces\Store  $store Storage Object
+	 * @param \PDO  $store Storage Object
 	 * @param Centiq\RBAC\Interfaces\Cache  $cache Cache Object
 	 */
-	public function __construct(Interfaces\Store $store, Interfaces\Cache $cache = null)
+	public function __construct(\PDO $store, Interfaces\Cache $cache = null)
 	{
 		/**
 		 * Set the storage interface
 		 */
-		$this->store = $store;
+		$this->store = new Store($store);
 
 		/**
 		 * Set the cache object if we have one
@@ -131,17 +131,11 @@ class Manager
 	 */
 	public function createRole($title, $description, Entities\Role $parent = null)
 	{
+		/**
+		 * Create the child node
+		 * @var Entities\Role
+		 */
 		return Entities\Role::create($this, $title, $description, $parent ? $parent : $this->getRootRole());
-	}
-
-	/**
-	 * Get a Role entity
-	 * @param  Integer|String $id Either the ID or the name
-	 * @return Entities\Role
-	 */
-	public function getRole($id)
-	{
-		return Entities\Role::resolve($id);
 	}
 
 	/**
@@ -153,26 +147,40 @@ class Manager
 	 */
 	public function createPermission($title, $description, Entities\Permission $parent = null)
 	{
+		/**
+		 * Create the child node
+		 * @var Entities\Permission
+		 */
 		return Entities\Permission::create($this, $title, $description, $parent ? $parent : $this->getRootPermission());
 	}
 
 	/**
-	 * Get a Permission entity
-	 * @param  Integer|String $id Either the ID or the name
+	 * Get a Role entity
+	 * @param  Integer|String $identity Either the ID or the name
 	 * @return Entities\Role
 	 */
-	public function getPermission($id)
+	public function getRole($identity)
 	{
-		return Entities\Permission::resolve($id);
+		return new Entities\Role($this, $identity);
+	}
+
+	/**
+	 * Get a Permission entity
+	 * @param  Integer|String $identity Either the ID or the name
+	 * @return Entities\Role
+	 */
+	public function getPermission($identity)
+	{
+		return new Entities\Permission($this, $identity);
 	}
 
 	/**
 	 * Fetch an account class
-	 * @param  Int $account_id Account Identification
+	 * @param  Int $identity Account Identification
 	 * @return Entities\Account An account object
 	 */
-	public function getAccount($account_id)
+	public function getAccount($identity)
 	{
-		return new Entities\Account($this, $account_id);
+		return new Entities\Account($this, $identity);
 	}
 }

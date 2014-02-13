@@ -9,6 +9,9 @@
  */
 namespace Centiq\RBAC\Entities;
 
+/**
+ * 
+ */
 abstract class Node
 {
 	/**
@@ -53,34 +56,17 @@ abstract class Node
 		 * Set the manager object
 		 */
 		$this->manager = $manager;
-		
+
 		/**
 		 * Set the ID
 		 */
 		$this->id = $node_id;
-
-		/**
-		 * Populate
-		 */
-		$this->update();
 	}
 
 	/**
-	 * Update the class with data from the arguments
-	 * @param  Array $node_data Node Data
-	 * @todo Throw exception if data is currupt.
+	 * Abstract method for updating the node, higher level specific
 	 */
-	public function update($node_data)
-	{
-		/**
-		 * Set the parameters
-		 */
-		$this->id 			= (int)$node_data['id'];
-		$this->left 		= (int)$node_data['left'];
-		$this->right 		= (int)$node_data['right'];
-		$this->title 		= $node_data['title'];
-		$this->description 	= $node_data['description'];
-	}
+	abstract public function update();
 
 	/**
 	 * Return the permission identification
@@ -127,14 +113,6 @@ abstract class Node
 		return $this->description;
 	}
 
-	/**
-	 * Check to see if the permission has children
-	 * @return boolean
-	 */
-	public function isLeaf()
-	{
-		return ($this->left() - $this->right()) === 1;
-	}
 
 	/**
 	 * Returnt the amount of children
@@ -143,6 +121,15 @@ abstract class Node
 	public function childrenLength()
 	{
 		return (($this->right() - $this->left()) - 1) / 2;
+	}
+
+	/**
+	 * Check to see if the permission has children
+	 * @return boolean
+	 */
+	public function isLeaf()
+	{
+		return $this->childrenLength() === 0;
 	}
 
 	/**

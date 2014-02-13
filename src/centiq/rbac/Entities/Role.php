@@ -19,8 +19,7 @@ class Role extends Node
 	 * @param  Integer             $parent      Parent role
 	 * @return Centiq\RBAC\Entities\Role         Role class
 	 */
-	public static function create(
-		\Centiq\RBAC\Manager $manager, $name, $description, Role $parent)
+	public static function create(\Centiq\RBAC\Manager $manager, $name, $description, Role $parent)
 	{
 		/**
 		 * Add the role to the database
@@ -33,61 +32,37 @@ class Role extends Node
 		return new self($manager, $role_id);
 	}
 
-	/**
-	 * Try and resolve a Role given a name
-	 */
-	public static function resolve($name)
+	public function __construct(\Centiq\RBAC\Manager $manager, $id, $data = null)
 	{
 		/**
-		 * Respolve a role name into a role id
-		 * @var Integer
+		 * Set the initial manager and identifer
 		 */
-		$role_id = $manager->getStore()->resolveRole($name);
+		parent::__construct($manager, $id);
 
 		/**
-		 * return a new instance of the role class
+		 * Load the data
 		 */
-		return new self($manager, $role_id);
+		$this->update($data);
 	}
 
-	/**
-	 * Manager Object
-	 * @var \Centiq\RBAC\Manager
-	 */
-	protected $mananger;
-
-	/**
-	 * Role constructor
-	 */
-	public function __construct(\Centiq\RBAC\Manager $manager, $role_id)
+	public function update(array $data = null)
 	{
 		/**
-		 * Set the ID
+		 * If we don't have any initialization datam fetch it from the id
 		 */
-		$this->id = $role_id;
+		if($data === null)
+		{
+			$data = $this->manager->getStore()->getRole($this->id());
+		}
 
 		/**
-		 * Set the manager object
+		 * Set the parameters
 		 */
-		$this->manager = $manager;
-
-		/**
-		 * Populate
-		 */
-		$this->update();
-	}
-
-	public function update()
-	{
-		/**
-		 * Fetch the role from the storage
-		 */
-		$role = $this->manager->getStore()->getRole($this->id());
-
-		/**
-		 * Update the node
-		 */
-		parent::update($role);
+		$this->id 			= (int)$data['id'];
+		$this->left 		= (int)$data['left'];
+		$this->right 		= (int)$data['right'];
+		$this->title 		= $data['title'];
+		$this->description 	= $data['description'];
 	}
 
 	public function getDecendents()
@@ -100,7 +75,7 @@ class Role extends Node
 	 */
 	public function addAccount(Account $account)
 	{
-		return $this->manager->getStorage()->assignRole($account->id(), $this->id());
+		return $this->manager->getStore()->assignRole($account->id(), $this->id());
 	}
 
 	/**
@@ -108,6 +83,40 @@ class Role extends Node
 	 */
 	public function addPermission(Permission $permission)
 	{
-		return $this->manager->getStorage()->assignPermission($permission->id(), $this->id());
+		return $this->manager->getStore()->assignPermission($permission->id(), $this->id());
+	}
+
+	/**
+	 * Create a new new child object
+	 */
+	public function createChild($title, $description)
+	{
+		/**
+		 * Insert the entity into the tree
+		 */
+		$role = $this->manager->getStore()->createRole($title, $description, $this->id());
+
+		/**
+		 * Return a new instance of the Role object
+		 */
+		return new self($this->manager, $role);
+	}
+
+	/**
+	 * Return a list of children including the current node
+	 */
+	public function getSelfAndDescendants()
+	{
+		/**
+		 * Fetch the roles
+		 */
+		$roles = $this->manager->getStore()->getChildRoles($this->id(), true);
+
+		/**
+		 * Map the roles into new instances
+		 */
+		return array_map(function($r){
+			return new Role($this->manager, $r['id'], $r);
+		}, $roles);
 	}
 }

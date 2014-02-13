@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="./vendor/autoload.php">
+    <php>
+        <const name="CENTIQ_ROOT" value="${basedir}" />
+    </php>
+    <testsuites>
+        <testsuite name="My Test Suite">
+            <directory suffix=".php">tests/Centiq</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
