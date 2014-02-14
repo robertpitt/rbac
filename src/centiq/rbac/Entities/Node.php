@@ -365,7 +365,7 @@ class Node
 		/**
 		 * Create a new path container
 		 */
-		$path = [];
+		$path = array();
 
 		$ancestors = $this->getAncestors();
 		if($ancestors)
