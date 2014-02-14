@@ -1,11 +1,15 @@
 language: php
 
 php:
-  - "5.4"
-  - "5.3"
+  - 5.5
+  - 5.4
+  - 5.3
+  - 5.2
+  - 5.1
 
 before_script:
   - mysql -e 'create database rbac;'
+  - mysql utravis --database rbac << sql/mysql.sql
 
 install:
    - composer install
