@@ -318,6 +318,96 @@ class Store
 	}
 
 	/**
+	 * Link account identifer to a role identifer
+	 * @param  Integer $account_id Account Id
+	 * @param  Integer $role_id    Role ID
+	 * @return boolean             Insert success
+	 */
+	public function connectAccountToRole($account_id, $role_id)
+	{
+		/**
+		 * Create the statement
+		 */
+		$statement = $this->database->prepare("INSERT IGNORE INTO {$this->prefix}user_roles (account_id, role_id) VALUES (:aid, :rid)");
+
+		/**
+		 * Bind parameters
+		 */
+		$statement->bindParam(":aid", $account_id);
+		$statement->bindParam(":rid", $role_id);
+
+		/**
+		 * Execute
+		 */
+		return $statement->execute();
+	}
+
+	/**
+	 * Check to see if an account is conencted to a role
+	 * @param  Integer $account_id Account ID
+	 * @param  Integer $role_id    Role ID
+	 * @return boolean
+	 */
+	public function accountInRole($account_id, $role_id)
+	{
+		/**
+		 * Create statement
+		 */
+		$statement = $this->database->prepare("SELECT account_id FROM {$this->prefix}user_roles WHERE account_id = :aid AND role_id = :rid");
+
+		/**
+		 * Bind parameters
+		 */
+		$statement->bindParam(":aid", $account_id);
+		$statement->bindParam(":rid", $role_id);
+
+		/**
+		 * Execute
+		 */
+		$statement->execute();
+
+		/**
+		 * Return we have a match
+		 */
+		return $statement->fetchColumn() == $account_id;
+	}
+
+	/**
+	 * Get permissions assigned to an account
+	 * @return Array
+	 */
+	public function getAccountPermissions($account_id)
+	{
+		$statement = $this->database->prepare(
+			"
+				SELECT permissions.*
+				FROM {$this->prefix}user_roles                AS u_roles
+				INNER JOIN {$this->prefix}roles               AS p_roles     ON (p_roles.id = u_roles.role_id)
+				INNER JOIN {$this->prefix}roles               AS c_roles     ON (c_roles.`left` >= p_roles.`left` AND c_roles.`right` <= p_roles.`right`)
+				INNER JOIN {$this->prefix}role_permissions    AS r_p         ON (r_p.role_id = c_roles.id)
+				INNER JOIN {$this->prefix}permissions         AS p_perms     ON (r_p.permission_id = p_perms.id)
+				INNER JOIN {$this->prefix}permissions         AS permissions ON (permissions.`left` >= p_perms.`left` AND permissions.`right` <= p_perms.`right`)
+				WHERE u_roles.account_id = :id
+			"
+		);
+
+		/**
+		 * Bind account id
+		 */
+		$statement->bindParam(":id", $account_id);
+
+		/**
+		 * Execute the statement
+		 */
+		$statement->execute();
+
+		/**
+		 * Return teh list
+		 */
+		return $statement->fetchAll(\PDO::FETCH_OBJ);
+	}
+
+	/**
 	 * Lock the table
 	 * @param  String $table Table we are locking
 	 * @param  string $mode  LOCK Mode

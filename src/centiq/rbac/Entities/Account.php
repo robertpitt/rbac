@@ -21,6 +21,18 @@ class Account
 	protected $identity;
 
 	/**
+	 * Permissions list
+	 * @var \Centiq\RBAC\Collections\Permissions
+	 */
+	protected $permissions;
+
+	/**
+	 * Roles list
+	 * @var \Centiq\RBAC\Collections\Roles
+	 */
+	protected $roles;
+
+	/**
 	 * Constructor
 	 * @param RBAC    $rbac   Core RBAC Instnace
 	 * @param Integer $id User edentity
@@ -40,11 +52,12 @@ class Account
 		$this->id = $id;
 
 		/**
-		 * 1. Populate all role ids connected to this account
-		 * 1a. - The rolese should be a listed of ids accross the whole tree
-		 * 2. Populate all permissions connected to this account.
-		 * 2a. The permissions should be a list of ids accroos the whole tre
+		 * Fetch the permissions
 		 */
+		$this->permissions = new \Centiq\RBAC\Collections\Permissions(
+			$this->getManager(),
+			$this->getManager()->getStore()->getAccountPermissions($this->id())
+		);
 	}
 
 	/**
@@ -54,5 +67,44 @@ class Account
 	public function id()
 	{
 		return $this->id;
+	}
+
+	/**
+	 * Return the manager object
+	 * @return \Centiq\RBAC\Manager
+	 */
+	public function getManager()
+	{
+		return $this->manager;
+	}
+
+	/**
+	 * Check to see if this account has a role
+	 * @param  Role    $role Role Object
+	 * @return boolean
+	 */
+	public function hasRole(Role $role)
+	{
+		return $this->getManager()->getStore()->accountInRole($this->id(), $role->id());
+	}
+
+	public function assignRole(Role $role)
+	{
+		return $this->getManager()->getStore()->connectAccountToRole($this->id(), $role->id());
+	}
+
+	public function getPermissions()
+	{
+		return $this->permissions;
+	}
+
+	public function getPermission($identity)
+	{
+		return $this->getPermissions()->get($identifer);
+	}
+
+	public function hasPermission($identity)
+	{
+		return $this->getPermissions()->has($identity);
 	}
 }
