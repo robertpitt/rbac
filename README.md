@@ -1,6 +1,8 @@
 RBAC
 ====
 
+[![Coverage Status](https://coveralls.io/repos/robertpitt/rbac/badge.png)](https://coveralls.io/r/robertpitt/rbac)
+
 What is RBAC?
 --------------
 
