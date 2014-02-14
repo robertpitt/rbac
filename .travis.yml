@@ -9,7 +9,7 @@ php:
 
 before_script:
   - mysql -e 'create database rbac;'
-  - mysql rbac -utravis << sql/mysql.sql
+  - mysql -u travis rbac < sql/mysql.sql
 
 install:
    - composer install
