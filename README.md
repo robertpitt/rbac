@@ -8,9 +8,13 @@ What is RBAC?
 
 Source: [Wikipedia](http://en.wikipedia.org/wiki/RBAC)
 
-Database Design
+Design
 --------------
-* @todo, discuss database structure and layout, and how it can be integrated with an accounts/user schema.
+Centiq RBAC provides NIST Level 2 Standard Hierarchical Role Based Access Control in an easy to use library that meets core php standards.
+
+* PSR-4 Complient
+* NIST-L2 Complient
+* Unit Testing
 
 Setup and Installation
 --------------
