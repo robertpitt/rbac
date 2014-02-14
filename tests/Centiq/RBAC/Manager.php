@@ -7,7 +7,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Create a PDO Object
          */
-        $this->pdo = new PDO('mysql:host=localhost;dbname=rbac_main', "root", "root");
+        $this->pdo = new PDO('mysql:host=localhost;dbname=rbac', "travis", "root");
 
         /**
          * Set exceptions on
