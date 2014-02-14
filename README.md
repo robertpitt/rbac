@@ -12,9 +12,30 @@ Design
 --------------
 Centiq RBAC provides NIST Level 2 Standard Hierarchical Role Based Access Control in an easy to use library that meets core php standards.
 
-* PSR-4 Complient
-* NIST-L2 Complient
-* Unit Testing
+This library provides the following core abilities
+* Create many Roles
+* Role <> Role Inheritance
+* Create many Permissions
+* Permission <> Permission Inheritance
+
+Basic Usage
+--------------
+```php
+require 'vendor/autoload.php'
+
+//Create a connection to the database
+$connection = new PDO("mysql:dbname=rbac_main;host=localhost");
+
+//Create a manager instance
+$manager = new \Centiq\RBAC\Manager($connection);
+
+//Fetch the root role
+$root = $manager->getRootRole();
+
+//Create a child role
+$child = $root->createChild("child", "My first child role");
+```
+
 
 Setup and Installation
 --------------
