@@ -1,6 +1,6 @@
 {
     "name": "centiq/rbac",
-    "description": "RBAC Authorization library",
+    "description": "NIST-2 RBAC Authorization library",
     "license": "GPL",
     "autoload" : {
         "psr-4": {

@@ -12,62 +12,98 @@ namespace Centiq\RBAC\Entities;
 /**
  * 
  */
-abstract class Node
+class Node
 {
 	/**
-	 * Permission ID
+	 * Manager Instance
+	 * @var \Centiq\RBAC\Manager
+	 */
+	protected $manager;
+
+	/**
+	 * Node Type
+	 * @var String
+	 */
+	protected $type;
+
+	/**
+	 * Entity ID
 	 * @var Integer
 	 */
 	protected $id;
 
 	/**
-	 * Left position of Permission
-	 * @var Integer
+	 * Left position
 	 */
 	protected $left;
 
 	/**
-	 * Right position of Permission
-	 * @var Integer
+	 * Right position
 	 */
 	protected $right;
 
 	/**
-	 * Permission title
-	 * @var String
+	 * Name
 	 */
-	protected $title;
+	protected $name;
 
 	/**
-	 * Permission Descriotion
-	 * @var String
+	 * Description
 	 */
 	protected $description;
 
 	/**
-	 * Node constructor
-	 * @param \Centiq\RBAC\Manager $manager       [description]
-	 * @param [type]            $permission_id [description]
+	 * Constructor
+	 * @param CentiqRBACManager $manager 	[description]
+	 * @param [type]            $type		[description]
+	 * @param [type]            $identifer 	[description]
 	 */
-	public function __construct(\Centiq\RBAC\Manager $manager, $node_id)
+	public function __construct(\Centiq\RBAC\Manager $manager, $type, $identifer)
 	{
 		/**
-		 * Set the manager object
+		 * Set the Manager Object
 		 */
 		$this->manager = $manager;
 
 		/**
-		 * Set the ID
+		 * Set the type
 		 */
-		$this->id = $node_id;
-	}
+		$this->type = $type;
 
-	/**
-	 * Abstract method for updating the node, higher level specific
-	 */
-	abstract public function update();
-	abstract public function createChild($title, $description);
-	abstract public function getChildren();
+		/**
+		 * If the identifer is not a numeric identifer, assume it's a name value
+		 */
+		if(is_numeric($identifer) === false)
+		{
+			$identifer = $this->manager->getStore()->resolve($type, $identifer);
+		}
+
+		/**
+		 * Set the identifer
+		 */
+		$this->id = (int)$identifer;
+
+		/**
+		 * Fetch the node's information
+		 */
+		$node = $this->manager->getStore()->getRow($type, "id", $identifer);
+
+		/**
+		 * Validate that we was able to retrive a node.
+		 */
+		if(!$node)
+		{
+			throw new \Exception("Node does not exists");
+		}
+
+		/**
+		 * Set the values
+		 */
+		$this->left 		= $node->left;
+		$this->right 		= $node->right;
+		$this->name 		= $node->name;
+		$this->description 	= $node->description;
+	}
 
 	/**
 	 * Return the permission identification
@@ -100,9 +136,9 @@ abstract class Node
 	 * Permission Title
 	 * @return String
 	 */
-	public function title()
+	public function name()
 	{
-		return $this->title;
+		return $this->name;
 	}
 
 	/**
@@ -114,12 +150,29 @@ abstract class Node
 		return $this->description;
 	}
 
+	/**
+	 * Return the node type
+	 * @return String
+	 */
+	public function type()
+	{
+		return $this->type;
+	}
+
+	/**
+	 * Return the Manager Object
+	 * @return \Centiq\RBAC\Manager
+	 */
+	public function getManager()
+	{
+		return $this->manager;
+	}
 
 	/**
 	 * Returnt the amount of children
 	 * @return Integer
 	 */
-	public function childrenLength()
+	public function getChildCount()
 	{
 		return (($this->right() - $this->left()) - 1) / 2;
 	}
@@ -130,7 +183,7 @@ abstract class Node
 	 */
 	public function isLeaf()
 	{
-		return $this->childrenLength() === 0;
+		return $this->getChildCount() === 0;
 	}
 
 	/**
@@ -151,5 +204,188 @@ abstract class Node
 	public function isAncestorOf(Node $node)
 	{
 		return $this->left() < $node->left() && $node->left() < $this->right();
+	}
+
+	/**
+	 * Check to see if hte current node is a root node
+	 * @return boolean
+	 */
+	public function isRoot()
+	{
+		return $this->left() == 0;
+	}
+
+	/**
+	 * Simple node validation, is right bigger than left.
+	 * @return boolean
+	 */
+	public function isValid()
+	{
+		return $this->right() > $this->left();
+	}
+
+	/**
+	 * Check to see if the node has children
+	 * @return boolean
+	 */
+	public function hasChildren()
+	{
+		return $this->getChildCount() > 0;
+	}
+
+	/**
+	 * Check to see if a node is a root node
+	 * @return boolean
+	 */
+	public function hasParant()
+	{
+		return !$this->isRoot();
+	}
+
+	/**
+	 */
+	public function getFirstChild()
+	{
+		if($this->isLeaf())
+		{
+			return null;
+		}
+
+		/**
+		 * Fetch the node
+		 */
+		$node = $this->getManager()->getStore()->getFirstChildId($this->type(), $this->id());
+
+		/**
+		 * If we have a negative response, expect that the tree has changed
+		 */
+		if($node)
+		{
+			return new self($this->getManager(), $this->type(), $node);
+		}
+	}
+
+	public function getLastChild()
+	{
+		if($this->isLeaf())
+		{
+			return null;
+		}
+
+		/**
+		 * Fetch the node
+		 */
+		$node = $this->getManager()->getStore()->getLastChildId($this->type(), $this->id());
+
+		/**
+		 * If we have a negative response, expect that the tree has changed
+		 */
+		if($node)
+		{
+			return new self($this->getManager(), $this->type(), $node);
+		}
+	}
+
+	public function getChildren()
+	{
+		/**
+		 * @todo splice the return results from the descendants
+		 */
+		return $this->getDescendants(1);
+	}
+
+	/**
+	 * Return the descendants of this node
+	 * @param  Integer $depth number of descendants, null for unlimited
+	 * @todo Implement depth slicing
+	 * @todo cache the results in runtime
+	 */
+	public function getDescendants($depth = null)
+	{
+		/**
+		 * Map the list of identifers into new objects
+		 */
+		return array_map(function($node){
+
+			return new self($this->getManager(), $this->type(), $node);
+
+		}, $this->getManager()->getStore()->getChildNodes($this->type(), $this->id()));
+	}
+
+	public function getAncestors()
+	{
+		/**
+		 * Map the list of identifers into new objects
+		 */
+		return array_map(function($node){
+
+			return new self($this->getManager(), $this->type(), $node);
+
+		}, $this->getManager()->getStore()->getAncestorNodes($this->type(), $this->id()));
+	}
+
+	public function getParent()
+	{
+		return end($this->getAncestors());
+	}
+
+	/**
+	 * Fetch the path of this node
+	 * @param  string  $separator    [description]
+	 * @param  boolean $include_self [description]
+	 * @return [type]                [description]
+	 */
+	public function getPath($include_self = false, $separator = '.')
+	{
+		/**
+		 * Create a new path container
+		 */
+		$path = [];
+
+		$ancestors = $this->getAncestors();
+		if($ancestors)
+		{
+			foreach($ancestors as $ancestor)
+			{
+				$path[] = $ancestor->name();
+			}
+		}
+
+		if($include_self)
+		{
+			$path[] = $this->name();
+		}
+
+		return implode($separator, $path);
+	}
+
+	public function createChild($name, $description)
+	{
+		/**
+		 * Create a new child node
+		 */
+		$node = $this->getManager()->getStore()->createNode($this->type(), $name, $description, $this->id());
+
+		/**
+		 * Return a wrapper class for the new node
+		 */
+		return new self($this->getManager(), $this->type(), $node);
+	}
+
+	/**
+	 * Delete this node from its tree
+	 * @return boolean
+	 */
+	public function delete($preserve_children = true)
+	{
+		/**
+		 * Validate that the node is not a root node
+		 */
+		if($this->isRoot() === true)
+		{
+			throw new \Exception("Cannot remove root node.");
+		}
+
+		return $this->getManager()->getStore()->deleteNode($this->type(), $this->id(), true);
 	}
 }

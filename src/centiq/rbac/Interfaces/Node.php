@@ -240,7 +240,7 @@ interface Node
      *
      * @return bool
      */
-    public function isValidNode();
+    public function isValid();
 
     /**
      * deletes node and it's descendants

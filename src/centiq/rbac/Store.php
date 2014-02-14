@@ -5,7 +5,8 @@
  * @license     All rights reserved
  * @author      Robert Pitt <rpitt@centiq.co.uk>
  * @version     0.0.1
- * @package     Centiq\RBAC
+ * @package     \Centiq\RBAC
+ * @link(_blank, http://www.evanpetersen.com/item/nested-sets.html) JUST ANOTHER HIERARCHICAL MODEL
  */
 namespace Centiq\RBAC;
 
@@ -29,7 +30,7 @@ class Store implements Interfaces\Store
 
 	/**
 	 * Store constructor
-	 * @param PDO $database
+	 * @param \PDO $database
 	 */
 	public function __construct(\PDO $database)
 	{
@@ -38,15 +39,18 @@ class Store implements Interfaces\Store
 		 * @var \PDO
 		 */
 		$this->database = $database;
+		$this->database->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 	}
 
 	/**
-	 * Get the connection
+	 * Get the raw \PDO conenction
+	 * @return \PDO
 	 */
 	public function getConnection()
 	{
 		return $this->database;
 	}
+
 
 	/**
 	 * Resolve an identifier for an entity to a primary identifer
@@ -62,172 +66,255 @@ class Store implements Interfaces\Store
 			throw new Exceptions\Store("Entity identifer ({$identifier}) must be a string or number");
 		}
 
+		if(is_numeric($identifier))
+		{
+			return (int)$identifier;
+		}
 
-		return is_numeric($identifier) ? (int)$identifier : $this->getEntity($table, $identifier, "title", "id")['id'];
+		if(($node = $this->getRow($table, "name", $identifier, "id")))
+		{
+			return $node->id;
+		}
 	}
 
 	/**
-	 * Resolve a role name to a role id
-	 * @param  String $name Role Name
-	 * @return Integer      Role ID
+	 * Retrive a single row from the database, this method is just a utility
+	 * @param  String $table   Table we are looking into
+	 * @param  String $column  Column that we are using to identify the row
+	 * @param  String $value   Value to be compared to the column
+	 * @param  String $columns Columns to return, defaults to *
+	 * @return stdClass        Returns a stdclass of the request.
 	 */
-	public function resolveRole($identifier)
-	{
-		return $this->resolve("roles", $identifier);
-	}
-
-	public function resolvePermission($identifier)
-	{
-		return $this->resolve("permissions", $identifier);
-	}
-
-	/**
-	 * [createRole description]
-	 * @param  [type] $title       [description]
-	 * @param  [type] $description [description]
-	 * @param  [type] $parent      [description]
-	 * @return [type]              [description]
-	 */
-	public function createRole($title, $description, $parent)
-	{
-		return $this->nestedCreate("roles", $parent, array(
-			"description" 	=> $description,
-			"title" 		=> $title
-		));
-	}
-
-	/**
-	 * Return a new role
-	 * @param  Integer $role Role id or role name.
-	 * @return Array
-	 */
-	public function getRole($id)
-	{
-		return $this->getEntity("roles", $id);
-	}
-
-	public function getChildRoles($id, $inc_self = false)
-	{
-		$statement = $this->database->prepare("
-			SELECT c.*
-			FROM {$this->prefix}roles as p
-			JOIN {$this->prefix}roles as c on (c.`left` " . ($inc_self ? ">=" : ">") . " p.`left` and c.`right` ". ($inc_self ? "<=" : "<") ." p.`right`)
-			WHERE p.id = :id
-    	");
-
-    	/**
-    	 * Bind the parent node identity
-    	 */
-    	$statement->bindParam(":id", $id);
-
-    	/**
-    	 * Execute
-    	 */
-    	$statement->execute();
-
-    	/**
-    	 * Return the list of arrays
-    	 */
-    	return $statement->fetchAll(\PDO::FETCH_ASSOC);
-	}
-
-	public function getChildPermissions($id, $inc_self = false)
-	{
-		$statement = $this->database->prepare("
-			SELECT c.*
-			FROM {$this->prefix}permissions as p
-			JOIN {$this->prefix}permissions as c on (c.`left` " . ($inc_self ? ">=" : ">") . " p.`left` and c.`right` ". ($inc_self ? "<=" : "<") ." p.`right`)
-			WHERE p.id = :id
-    	");
-
-    	/**
-    	 * Bind the parent node identity
-    	 */
-    	$statement->bindParam(":id", $id);
-
-    	/**
-    	 * Execute
-    	 */
-    	$statement->execute();
-
-    	/**
-    	 * Return the list of arrays
-    	 */
-    	return $statement->fetchAll(\PDO::FETCH_ASSOC);
-	}
-
-	/**
-	 * Delete a role
-	 * @param  Intiger|String $role Role id or role name
-	 * @return Boolean
-	 */
-	public function deleteRole($role){}
-
-	/**
-	 * Update a role
-	 * @param  Integer|String $role 
-	 */
-	public function updateRole($role, $name, $description){}
-
-	/**
-	 * Update a role
-	 */
-	public function createPermission($title, $description, $parent)
-	{
-		return $this->nestedCreate("permissions", $parent, array(
-			"description" 	=> $description,
-			"title" 		=> $title
-		));
-	}
-
-	/**
-	 * Fetch a permission
-	 */
-	public function getPermission($id)
-	{
-		return $this->getEntity("permissions", $id);
-	}
-
-	/**
-	 * Delete a permission
-	 * @return [type] [description]
-	 */
-	public function deletePermission($id){}
-	public function updatePermission($id, $title, $description){}
-
-	/**
-	 * Return an entity, such as permission or role
-	 * @param  Ineger $role_id Role Identifier
-	 * @return Array          Role data
-	 */
-	protected function getEntity($table, $entity_id, $pk = 'id', $columns = '*')
+	public function getRow($table, $column, $value, $columns = "*")
 	{
 		/**
-		 * Prepare the statement
+		 * Prepare a statement
 		 */
-		$statement = $this->database->prepare("SELECT {$columns} FROM {$this->prefix}{$table} WHERE {$pk} = :id");
+		$statement = $this->database->prepare("SELECT {$columns} FROM {$this->prefix}{$table} WHERE {$column} = :value");
 
 		/**
-		 * Bind the role id to the query
+		 * Bind
 		 */
-		$statement->bindParam(":id", $entity_id);
+		$statement->bindParam(":value", $value);
 
 		/**
 		 * Execute
 		 */
-		try
-		{
-			$statement->execute();
-		}
-		catch(\PDOException $e)
-		{
-			throw new Exceptions\Store("Unable to locate entity {$table}({$entity_id})", 0, $e);
-		}
+		$statement->execute();
 
 		/**
-		 * Return teh object
+		 * Return the row
 		 */
-		return $statement->fetch(\PDO::FETCH_ASSOC);
+		return $statement->fetch(\PDO::FETCH_OBJ);
+	}
+
+	/**
+	 * Return the id of the first child (left-most) of a node
+	 * @param  String  $table Table we are looking into.
+	 * @param  Integer $id    Nodes identifer
+	 * @return Integer        Left most sub node's ID
+	 */
+	public function getFirstChildId($table, $id)
+	{
+		$statement = $this->database->prepare("
+			SELECT c.id
+			FROM {$this->prefix}{$table} as p
+			JOIN {$this->prefix}{$table} as c on (c.`left` = p.`left` + 1 and c.`right` < p.`right`)
+			WHERE p.id = :id
+		");
+
+		/**
+		 * Bind
+		 */
+		$statement->bindParam(":id", $id);
+
+		/**
+		 * Execute
+		 */
+		$statement->execute();
+
+		/**
+		 * Return the row
+		 */
+		return $statement->fetchColumn(0);
+	}
+
+	/**
+	 * Return the id of the last child (right-most) of a node
+	 * @param  String  $table Table we are looking into.
+	 * @param  Integer $id    Nodes identifer
+	 * @return Integer        Left most sub node's ID
+	 */
+	public function getLastChildId($table, $id)
+	{
+		$statement = $this->database->prepare("
+			SELECT c.id
+			FROM {$this->prefix}{$table} as p
+			JOIN {$this->prefix}{$table} as c on (c.`left` > p.`left` and c.`right` = p.`right` - 1)
+			WHERE p.id = :id
+		");
+
+		/**
+		 * Bind
+		 */
+		$statement->bindParam(":id", $id);
+
+		/**
+		 * Execute
+		 */
+		$statement->execute();
+
+		/**
+		 * Return the row
+		 */
+		return $statement->fetchColumn(0);
+	}
+
+	/**
+	 * Return a list of child identifers for a node
+	 * @param  String  $table Table we are looking into.
+	 * @param  Integer $id    Nodes identifer
+	 * @return Array          Array of identifiers
+	 */
+	public function getChildNodes($table, $id)
+	{
+		$statement = $this->database->prepare("
+			SELECT c.id
+			FROM {$this->prefix}{$table} as p
+			JOIN {$this->prefix}{$table} as c on (c.`left` > p.`left` and c.`right` < p.`right`)
+			WHERE p.id = :id
+			ORDER BY c.`left` ASC
+		");
+
+		/**
+		 * Bind
+		 */
+		$statement->bindParam(":id", $id);
+
+		/**
+		 * Execute
+		 */
+		$statement->execute();
+
+		/**
+		 * Return the row
+		 */
+		return $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
+	}
+
+	/**
+	 * Return a list of parent identifers for a node up the tree to root
+	 * @param  String  $table Table we are looking into.
+	 * @param  Integer $id    Nodes identifer
+	 * @return Array          Array of identifiers
+	 */
+	public function getAncestorNodes($table, $id)
+	{
+		$statement = $this->database->prepare("
+			SELECT c.id
+			FROM {$this->prefix}{$table} as p
+			JOIN {$this->prefix}{$table} as c on (c.`left` < p.`left` and c.`right` > p.`right`)
+			WHERE p.id = :id
+			ORDER BY c.`left` ASC
+		");
+
+		/**
+		 * Bind
+		 */
+		$statement->bindParam(":id", $id);
+
+		/**
+		 * Execute
+		 */
+		$statement->execute();
+
+		/**
+		 * Return the row
+		 */
+		return $statement->fetchAll(\PDO::FETCH_COLUMN, 0);
+	}
+
+	/**
+	 * Create a new node as a child of a node id.
+	 * @param  String $table        Table we are looking into.
+	 * @param  String $name         Childs name
+	 * @param  String $description  Childs Description
+	 * @param  Integer $parent_id   Parent identifier
+	 * @return Integer 				New nodes identifer
+	 */
+	public function createNode($table, $name, $description, $parent_id)
+	{
+		/**
+		 * Fetch the parent node
+		 */
+		$parent = $this->getRow($table, "id", $parent_id);
+
+		/**
+		 * Validate that the parent exists
+		 */
+		if(!$parent)
+		{
+			throw new Exceptions\Store("Parent node for ({$node}) does not exists");
+		}
+
+
+		/**
+		 * Repositon the l/r values
+		 */
+		$sql = "UPDATE {$this->prefix}{$table} SET `left` = `left` + 2 WHERE `left` >= ?";
+		$this->database->prepare($sql)->execute(array($parent->right));
+
+		$sql = "UPDATE {$this->prefix}{$table} SET `right` = `right` + 2 WHERE `right` >= ?";
+		$this->database->prepare($sql)->execute(array($parent->right));
+
+		/**
+		 * slot hte new node in place
+		 * @var PDOStatement
+		 */
+		$statement = $this->database->prepare("INSERT INTO {$this->prefix}{$table} (name, description, `left`, `right`) VALUES (?, ?, ?, ?)");
+
+		/**
+		 * Execute the statement
+		 */
+		$success = $statement->execute(array(
+			$name,
+			$description,
+			$parent->right,
+			$parent->right + 1
+		));
+
+		return $this->database->lastInsertId();
+	}
+
+	/**
+	 * Remove a node from a tree
+	 * @param  String  $table             Table we are looking into.
+	 * @param  Integer  $id               Node id we want to remove
+	 * @param  boolean $preserve_children Child preservation, this sets all children to the parent of
+	 *                                    the nodes we are deleting, otherwise we delete the whole subtree
+	 * @return boolean
+	 */
+	public function deleteNode($table, $id, $preserve_children = true)
+	{
+		/**
+		 * Fetch the node
+		 */
+		$node = $this->getRow($table, "id", $id);
+
+		if($preserve_children)
+		{
+			//Shift the left positions
+			$sql = "UPDATE {$this->prefix}{$table} SET `left` = `left` - 2 WHERE `left` > ?";
+			$a = $this->database->prepare($sql)->execute(array($node->left));
+
+			//Shift the right positions
+			$sql = "UPDATE {$this->prefix}{$table} SET `right` = `right` - 2 WHERE `right` > ?";
+			$b = $this->database->prepare($sql)->execute(array($node->right));
+
+			//Remove the node
+			$c = $this->database->prepare("DELETE FROM {$this->prefix}{$table} WHERE id = ?")->execute(array($node->id));
+			return $a && $b && $c;
+		}
 	}
 
 	/**
@@ -238,11 +325,6 @@ class Store implements Interfaces\Store
 	{
 		try
 		{
-			if($this->database->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite')
-			{
-				return true;
-			}
-
 			return $this->database->query("LOCK TABLE {$this->prefix}{$table} {$mode}")->execute();
 		}
 		catch(\PDOException $e)
@@ -259,135 +341,11 @@ class Store implements Interfaces\Store
 	{
 		try
 		{
-			if($this->database->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite')
-			{
-				return true;
-			}
-			
 			return $this->database->query("UNLOCK TABLES")->execute();
 		}
 		catch(\PDOException $e)
 		{
 			throw new Exceptions\Store("Unable to UNLOCK tables.", 0, $e);
-		}
-	}
-
-	/**
-	 * Create a nested element within a nested set table
-	 * @param  String  $table   Table identifer
-	 * @param  Integer $parent  Parent identifer
-	 * @param  array   $params  Parameters such as description
-	 */
-	protected function nestedCreate($table, $parent, array $params = array())
-	{
-		try
-		{
-			/**
-			 * Remove left / right values if existing
-			 */
-			unset($params['left'], $params['right']);
-
-			/**
-			 * Get the keys
-			 */
-			$keys 	= array_keys($params);
-			$values = array_values($params);
-
-			/**
-			 * Validate we have keys
-			 */
-			if(count($keys) === 0) throw new Exception("Invalid parameters passed");
-
-			/**
-			 * Fetch the parent role
-			 */
-			$parent = $this->getEntity($table, $parent);
-
-			/**
-			 * Start a new transaction for this.
-			 */
-			$this->database->beginTransaction();
-
-			/**
-			 * Lock the tables
-			 */
-			$this->lock($table);
-
-			/**
-			 * Repositon the l/r values
-			 */
-			$sql = "UPDATE {$this->prefix}{$table} SET `left` = `left` + 2 WHERE `left` >= ?";
-			$b = $this->database->prepare($sql)->execute(array($parent['right']));
-
-			$sql = "UPDATE {$this->prefix}{$table} SET `right` = `right` + 2 WHERE `right` >= ?";
-			$a = $this->database->prepare($sql)->execute(array($parent['right']));
-
-			/**
-			 * Implode the keys
-			 */
-			$fields = implode(", ", $keys);
-			$placeholders = implode(", ", array_fill(0, count($keys), "?"));
-
-			/**
-			 * Create the update statement
-			 * @var PDOStatement
-			 */
-			$statement = $this->database->prepare("INSERT INTO {$this->prefix}{$table} ({$fields}, `left`, `right`) VALUES ({$placeholders}, ?, ?)");
-
-			/**
-			 * Push the positionals into the array
-			 */
-			$values[] = ((int)$parent['right']); // left
-			$values[] = ((int)$parent['right'] + 1); // right
-
-			/**
-			 * Execute
-			 */
-			$created = $statement->execute($values);
-
-			/**
-			 * Fetch the insert ID
-			 * @var Ineger
-			 */
-			$id = $this->database->lastInsertId();
-
-			/**
-			 * Valiadte the row was created
-			 */
-			if(!$created || !$id)
-			{
-				throw new Exception("Unable to created entity of type ({$table})");
-				
-			}
-
-			/**
-			 * Finally commit
-			 */
-			$b = $this->database->commit();
-
-			/**
-			 * Unlock the tables
-			 */
-			$this->unlock();
-
-			/**
-			 * Return the insert id
-			 */
-			return (int)$id;
-		}
-		catch(\Exception $e)
-		{
-			$this->database->rollBack();
-
-			/**
-			 * Unlock the table
-			 */
-			$this->unlock();
-
-			/**
-			 * Pass the exception up to the handler
-			 */
-			throw new Exceptions\Store($e->getMessage(), $e->getCode(), $e);
 		}
 	}
 }

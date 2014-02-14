@@ -1,3 +1,16 @@
+DROP TABLE IF EXISTS `rbac_roles`;
+CREATE TABLE `rbac_roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `left` int(11) NOT NULL,
+  `right` int(11) NOT NULL,
+  `name` varchar(128) COLLATE utf8_bin NOT NULL,
+  `description` text COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `name` (`name`),
+  KEY `left` (`left`),
+  KEY `right` (`right`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
 DROP TABLE IF EXISTS `rbac_user_roles`;
 CREATE TABLE `rbac_user_roles` (
   `account_id` int(11) NOT NULL,
@@ -7,35 +20,18 @@ CREATE TABLE `rbac_user_roles` (
   CONSTRAINT `fk_rbac_user_roles_1` FOREIGN KEY (`role_id`) REFERENCES `rbac_roles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-
-
-DROP TABLE IF EXISTS `rbac_roles`;
-CREATE TABLE `rbac_roles` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `left` int(11) NOT NULL,
-  `right` int(11) NOT NULL,
-  `title` varchar(128) COLLATE utf8_bin NOT NULL,
-  `description` text COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `title` (`title`),
-  KEY `left` (`left`),
-  KEY `right` (`right`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-
-
-
 DROP TABLE IF EXISTS `rbac_permissions`;
 CREATE TABLE `rbac_permissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `left` int(11) NOT NULL,
   `right` int(11) NOT NULL,
-  `title` char(64) COLLATE utf8_bin NOT NULL,
+  `name` char(64) COLLATE utf8_bin NOT NULL,
   `description` text COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `title` (`title`),
+  KEY `name` (`name`),
   KEY `left` (`left`),
   KEY `right` (`right`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
 DROP TABLE IF EXISTS `rbac_role_permissions`;

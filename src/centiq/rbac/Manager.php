@@ -123,38 +123,6 @@ class Manager
 	}
 
 	/**
-	 * Create a new role
-	 * @param  String  $title       			Title of the role
-	 * @param  String  $description 			Description of the role
-	 * @param  Integer $parent      			Parent role id.
-	 * @return Centiq\RBAC\Entities\Role
-	 */
-	public function createRole($title, $description, Entities\Role $parent = null)
-	{
-		/**
-		 * Create the child node
-		 * @var Entities\Role
-		 */
-		return Entities\Role::create($this, $title, $description, $parent ? $parent : $this->getRootRole());
-	}
-
-	/**
-	 * Create a new Permission
-	 * @param  String 				$title 			Title of the permission
-	 * @param  String 				$description 	Description of the permission
-	 * @param  Entities\Permission 	$parent 		Parent permission id
-	 * @return Centiq\RBAC\Entities\Permission
-	 */
-	public function createPermission($title, $description, Entities\Permission $parent = null)
-	{
-		/**
-		 * Create the child node
-		 * @var Entities\Permission
-		 */
-		return Entities\Permission::create($this, $title, $description, $parent ? $parent : $this->getRootPermission());
-	}
-
-	/**
 	 * Get a Role entity
 	 * @param  Integer|String $identity Either the ID or the name
 	 * @return Entities\Role
