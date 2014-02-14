@@ -1,7 +1,7 @@
 RBAC
 ====
 
-[![Coverage Status](https://coveralls.io/repos/robertpitt/rbac/badge.png)](https://coveralls.io/r/robertpitt/rbac)
+[![Build Status](https://travis-ci.org/robertpitt/rbac.png?branch=master)](https://travis-ci.org/robertpitt/rbac)
 
 What is RBAC?
 --------------
