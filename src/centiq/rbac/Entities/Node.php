@@ -10,7 +10,7 @@
 namespace Centiq\RBAC\Entities;
 
 /**
- * 
+ * Base node class, used primaraly for roles and permissions
  */
 class Node
 {
@@ -34,29 +34,33 @@ class Node
 
 	/**
 	 * Left position
+	 * @var Integer
 	 */
 	protected $left;
 
 	/**
 	 * Right position
+	 * @var Integer
 	 */
 	protected $right;
 
 	/**
-	 * Name
+	 * Name of this node
+	 * @var String
 	 */
 	protected $name;
 
 	/**
-	 * Description
+	 * Description of this node
+	 * @var String
 	 */
 	protected $description;
 
 	/**
 	 * Constructor
-	 * @param CentiqRBACManager $manager 	[description]
-	 * @param [type]            $type		[description]
-	 * @param [type]            $identifer 	[description]
+	 * @param CentiqRBACManager  $manager 	Manager Object
+	 * @param String             $type		Node Type / Table Name
+	 * @param Integer            $identifer Node Identifer
 	 */
 	public function __construct(\Centiq\RBAC\Manager $manager, $type, $identifer)
 	{
@@ -243,6 +247,8 @@ class Node
 	}
 
 	/**
+	 * Return the first child of this node
+	 * @return Node Returns a new node object
 	 */
 	public function getFirstChild()
 	{
@@ -265,6 +271,10 @@ class Node
 		}
 	}
 
+	/**
+	 * Return the last child (right-most) of this node.
+	 * @return Node
+	 */
 	public function getLastChild()
 	{
 		if($this->isLeaf())
@@ -274,6 +284,7 @@ class Node
 
 		/**
 		 * Fetch the node
+		 * @var Integer|Null
 		 */
 		$node = $this->getManager()->getStore()->getLastChildId($this->type(), $this->id());
 
@@ -286,6 +297,11 @@ class Node
 		}
 	}
 
+	/**
+	 * Return the direct children of this node
+	 * @todo currently returns full tree, splice top level
+	 * @return Array
+	 */
 	public function getChildren()
 	{
 		/**
@@ -312,6 +328,11 @@ class Node
 		}, $this->getManager()->getStore()->getChildNodes($this->type(), $this->id()));
 	}
 
+	/**
+	 * Return a list of ancestors for this node
+	 * @todo implement depth
+	 * @return Array<Node>
+	 */
 	public function getAncestors()
 	{
 		/**
@@ -324,6 +345,10 @@ class Node
 		}, $this->getManager()->getStore()->getAncestorNodes($this->type(), $this->id()));
 	}
 
+	/**
+	 * Return the parent node
+	 * @return Node
+	 */
 	public function getParent()
 	{
 		return end($this->getAncestors());
@@ -359,6 +384,12 @@ class Node
 		return implode($separator, $path);
 	}
 
+	/**
+	 * Create a child node below the current node
+	 * @param  String $name        Childs name
+	 * @param  String $description Childs description
+	 * @return Node                New node
+	 */
 	public function createChild($name, $description)
 	{
 		/**
@@ -374,6 +405,8 @@ class Node
 
 	/**
 	 * Delete this node from its tree
+	 * @param boolean $preserve_children This we move th children to the parent
+	 *                                   of the deleting node.
 	 * @return boolean
 	 */
 	public function delete($preserve_children = true)

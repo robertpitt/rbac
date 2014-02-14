@@ -9,8 +9,15 @@
  */
 namespace Centiq\RBAC\Entities;
 
+/**
+ * Account wrapper object
+ */
 class Account
 {
+	/**
+	 * Account Identifer
+	 * @var Integer
+	 */
 	protected $identity;
 
 	/**
@@ -41,18 +48,11 @@ class Account
 	}
 
 	/**
-	 * Fetch the account id
+	 * Fetch the account identifer
 	 * @return Integer
 	 */
 	public function id()
 	{
 		return $this->id;
-	}
-
-	/**
-	 * Detect if the account is connected to a specific role
-	 */
-	public function hasRole($entity)
-	{
 	}
 }

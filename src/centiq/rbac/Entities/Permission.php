@@ -9,8 +9,16 @@
  */
 namespace Centiq\RBAC\Entities;
 
+/**
+ * This is a wrapper for the node type #Permission
+ */
 class Permission extends Node
 {
+	/**
+	 * Permission Constructor
+	 * @param Centiq\RBAC\Manager $manager Manager Object
+	 * @param Integer             $id      Permission ID
+	 */
 	public function __construct(\Centiq\RBAC\Manager $manager, $id)
 	{
 		/**

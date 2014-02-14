@@ -14,7 +14,7 @@ namespace Centiq\RBAC;
  * RBAC Manager Class
  * @since 0.0.1
  */
-class Store implements Interfaces\Store
+class Store
 {
 	/**
 	 * Database Instance
@@ -318,8 +318,10 @@ class Store implements Interfaces\Store
 	}
 
 	/**
-	 * Lock a table
-	 * @return Boolean
+	 * Lock the table
+	 * @param  String $table Table we are locking
+	 * @param  string $mode  LOCK Mode
+	 * @return void
 	 */
 	protected function lock($table, $mode = "WRITE")
 	{
@@ -334,8 +336,8 @@ class Store implements Interfaces\Store
 	}
 
 	/**
-	 * Unlock the tables
-	 * @return Boolean
+	 * Unlock all tables
+	 * @return void
 	 */
 	protected function unlock()
 	{

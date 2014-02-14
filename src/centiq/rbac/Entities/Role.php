@@ -9,8 +9,16 @@
  */
 namespace Centiq\RBAC\Entities;
 
+/**
+ * This is a wrapper for the node type #Role
+ */
 class Role extends Node
 {
+	/**
+	 * Role Constructor
+	 * @param Centiq\RBAC\Manager $manager Manager Object
+	 * @param Integer             $id      Role ID
+	 */
 	public function __construct(\Centiq\RBAC\Manager $manager, $id)
 	{
 		/**
