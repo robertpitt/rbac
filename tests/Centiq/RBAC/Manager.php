@@ -7,7 +7,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Create a PDO Object
          */
-        $this->pdo = new PDO('mysql:host=localhost;dbname=rbac_units', "root", "root");
+        $this->pdo = new PDO('mysql:host=localhost;dbname=rbac_main', "root", "root");
 
         /**
          * Set exceptions on
@@ -17,10 +17,10 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Install tables
          */
-        if(!$this->pdo->exec(file_get_contents(__DIR__ . "/../../../sql/mysql.sql")))
-        {
-            throw new Exception("Unable to import sqlite DB");
-        }
+        // if(!$this->pdo->exec(file_get_contents(__DIR__ . "/../../../sql/mysql.sql")))
+        // {
+        //     throw new Exception("Unable to import sqlite DB");
+        // }
 
         /**
          * Reset the increment
@@ -37,10 +37,10 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Create the initial root entity
          */
-        $statement = $this->pdo->prepare("INSERT INTO rbac_roles (`title`, `description`, `left`, `right`) VALUES (?,?,?,?)");
+        $statement = $this->pdo->prepare("INSERT INTO rbac_roles (`name`, `description`, `left`, `right`) VALUES (?,?,?,?)");
         $statement->execute(array("root", "Root Entity", 0, 1));
 
-        $statement = $this->pdo->prepare("INSERT INTO rbac_permissions (`title`, `description`, `left`, `right`) VALUES (?,?,?,?)");
+        $statement = $this->pdo->prepare("INSERT INTO rbac_permissions (`name`, `description`, `left`, `right`) VALUES (?,?,?,?)");
         $statement->execute(array("root", "Root Entity", 0, 1));
 
         /**
@@ -65,9 +65,9 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(1, $this->manager->getRootRole()->id());
 
         /**
-         * Caldiate title
+         * Caldiate name
          */
-        $this->assertEquals("root", $this->manager->getRootRole()->title());
+        $this->assertEquals("root", $this->manager->getRootRole()->name());
 
         /**
          * Validate Description
@@ -87,7 +87,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * We should have no children
          */
-        $this->assertEquals(0, $this->manager->getRootRole()->childrenLength());
+        $this->assertEquals(0, $this->manager->getRootRole()->getChildCount());
 
         /**
          * Valdiate that the root node is a final node (currently, will change later in tests)
@@ -97,7 +97,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * We are not expecting children, we was never even trying :/
          */
-        $this->assertEquals(0, $this->manager->getRootRole()->childrenLength());
+        $this->assertEquals(0, $this->manager->getRootRole()->getChildCount());
     }
 
 
@@ -116,38 +116,38 @@ class ManagerTest extends PHPUnit_Framework_TestCase
          * Validate that the left and right values have changed from the
          * @testRootRole call.
          */
-        $this->manager->getRootRole()->update();
+        $root = $this->manager->getRole("root");
 
         /**
          * The left position of the child should be + 1 of the parents left
          */
-        $this->assertEquals($this->manager->getRootRole()->left() + 1, $child->left());
+        $this->assertEquals($root->left() + 1, $child->left());
 
         /**
          * The child's right position should be - 1 if the parents right position
          */
-        $this->assertEquals($this->manager->getRootRole()->right() - 1, $child->right());
+        $this->assertEquals($root->right() - 1, $child->right());
 
         /**
          * The root role should be able to detect if the child is actually a child
          * of a parent node
          */
-        $this->assertTrue($this->manager->getRootRole()->isAncestorOf($child));
+        $this->assertTrue($root->isAncestorOf($child));
 
         /**
          * The child should be able to detect it's parent node
          */
-        $this->assertTrue($child->isDescendantOf($this->manager->getRootRole()));
+        $this->assertTrue($child->isDescendantOf($root));
 
         /**
          * Validate that the root node has one child
          */
-        $this->assertEquals(1, $this->manager->getRootRole()->childrenLength());
+        $this->assertEquals(1, $root->getChildCount());
 
         /**
          * Validate the parent node is not a leaf
          */
-        $this->assertFalse($this->manager->getRootRole()->isLeaf());
+        $this->assertFalse($root->isLeaf());
 
         /**
          * Validate the child is a leaf node
@@ -163,23 +163,18 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Create a new node to spawn the child nodes from.
          */
-        $node = null;
+        $node = $this->manager->getRole("root");
         for ($i=0; $i <= 20; $i++)
         {
             /**
              * Create a child node
              */
-            $node = $this->manager->createRole("test_" . $i, "Child Node", $node);
-
-            /**
-             * Update the root node as the set layout has changed
-             */
-            $this->manager->getRootRole()->update();
+            $node = $node->createChild("test_" . $i, "Child Node", $node);
 
             /**
              * Valdiate that that the node is a child of root
              */
-            $this->assertTrue($this->manager->getRootRole()->isAncestorOf($node));
+            $this->assertTrue($this->manager->getRole("root")->isAncestorOf($node));
         }
     }
 
@@ -199,9 +194,9 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(1, $this->manager->getRootPermission()->id());
 
         /**
-         * Caldiate title
+         * Caldiate name
          */
-        $this->assertEquals("root", $this->manager->getRootPermission()->title());
+        $this->assertEquals("root", $this->manager->getRootPermission()->name());
 
         /**
          * Validate Description
@@ -221,7 +216,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * We should have no children
          */
-        $this->assertEquals(0, $this->manager->getRootPermission()->childrenLength());
+        $this->assertEquals(0, $this->manager->getRootPermission()->getChildCount());
 
         /**
          * Valdiate that the root node is a final node (currently, will change later in tests)
@@ -231,7 +226,7 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * We are not expecting children, we was never even trying :/
          */
-        $this->assertEquals(0, $this->manager->getRootPermission()->childrenLength());
+        $this->assertEquals(0, $this->manager->getRootPermission()->getChildCount());
     }
 
     /**
@@ -249,38 +244,38 @@ class ManagerTest extends PHPUnit_Framework_TestCase
          * Validate that the left and right values have changed from the
          * @testRootRole call.
          */
-        $this->manager->getRootPermission()->update();
+        $root = $this->manager->getPermission("root");
 
         /**
          * The left position of the child should be + 1 of the parents left
          */
-        $this->assertEquals($this->manager->getRootPermission()->left() + 1, $child->left());
+        $this->assertEquals($root->left() + 1, $child->left());
 
         /**
          * The child's right position should be - 1 if the parents right position
          */
-        $this->assertEquals($this->manager->getRootPermission()->right() - 1, $child->right());
+        $this->assertEquals($root->right() - 1, $child->right());
 
         /**
          * The root role should be able to detect if the child is actually a child
          * of a parent node
          */
-        $this->assertTrue($this->manager->getRootPermission()->isAncestorOf($child));
+        $this->assertTrue($root->isAncestorOf($child));
 
         /**
          * The child should be able to detect it's parent node
          */
-        $this->assertTrue($child->isDescendantOf($this->manager->getRootPermission()));
+        $this->assertTrue($child->isDescendantOf($root));
 
         /**
          * Validate that the root node has one child
          */
-        $this->assertEquals(1, $this->manager->getRootPermission()->childrenLength());
+        $this->assertEquals(1, $root->getChildCount());
 
         /**
          * Validate the parent node is not a leaf
          */
-        $this->assertFalse($this->manager->getRootPermission()->isLeaf());
+        $this->assertFalse($root->isLeaf());
 
         /**
          * Validate the child is a leaf node
@@ -297,32 +292,18 @@ class ManagerTest extends PHPUnit_Framework_TestCase
         /**
          * Create a new node to spawn the child nodes from.
          */
-        $node = null;
+        $node = $this->manager->getPermission("root");
         for ($i=1; $i <= 20; $i++)
         {
             /**
              * Create a child node
              */
-            $node = $this->manager->createPermission("test_" . $i, "Child Node", $node);
-
-            /**
-             * Update the root node as the set layout has changed
-             */
-            $this->manager->getRootPermission()->update();
+            $node = $node->createChild("test_" . $i, "Child Node", $node);
 
             /**
              * Valdiate that that the node is a child of root
              */
-            $this->assertTrue($this->manager->getRootPermission()->isAncestorOf($node));
+            $this->assertTrue($this->manager->getPermission("root")->isAncestorOf($node));
         }
-
-        /**
-         * Validate that the records retrived from the children match the calculated
-         * child length of the root.
-         */
-        $this->assertEquals(
-            $this->manager->getRootPermission()->childrenLength(),
-            count($this->manager->getRootPermission()->getChildren())
-        );
     }
 }
