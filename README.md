@@ -3,6 +3,9 @@ RBAC
 
 [![Build Status](https://travis-ci.org/robertpitt/rbac.png?branch=master)](https://travis-ci.org/robertpitt/rbac)
 
+#### Important!
+This package is still currently under heavy development, please do not until the package is in a stable state.
+
 What is RBAC?
 --------------
 
