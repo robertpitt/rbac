@@ -318,6 +318,31 @@ class Store
 	}
 
 	/**
+	 * Link permission identifer to a role identifer
+	 * @param  Integer $permission_id 	Permission ID
+	 * @param  Integer $role_id    		Role ID
+	 * @return boolean             		Insert success
+	 */
+	public function connectPermissionToRole($permission_id, $role_id)
+	{
+		/**
+		 * Create the statement
+		 */
+		$statement = $this->database->prepare("INSERT IGNORE INTO {$this->prefix}role_permissions (permission_id, role_id) VALUES (:pid, :rid)");
+
+		/**
+		 * Bind parameters
+		 */
+		$statement->bindParam(":pid", $permission_id);
+		$statement->bindParam(":rid", $role_id);
+
+		/**
+		 * Execute
+		 */
+		return $statement->execute();
+	}
+
+	/**
 	 * Link account identifer to a role identifer
 	 * @param  Integer $account_id Account Id
 	 * @param  Integer $role_id    Role ID

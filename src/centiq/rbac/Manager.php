@@ -54,17 +54,12 @@ class Manager
 	 * @param \PDO  $store Storage Object
 	 * @param Centiq\RBAC\Interfaces\Cache  $cache Cache Object
 	 */
-	public function __construct(\PDO $store, Interfaces\Cache $cache = null)
+	public function __construct(\PDO $store)
 	{
 		/**
 		 * Set the storage interface
 		 */
 		$this->store = new Store($store);
-
-		/**
-		 * Set the cache object if we have one
-		 */
-		$this->cache = $cache ? $cache : null; //force null for strict comparisons
 
 		/**
 		 * Get the root Role object
@@ -84,24 +79,6 @@ class Manager
 	public function getStore()
 	{
 		return $this->store;
-	}
-
-	/**
-	 * Return the cache object
-	 * @return Centiq\RBAC\Interfaces\Cache
-	 */
-	public function getCache()
-	{
-		return $this->cache;
-	}
-
-	/**
-	 * Return true if there is a caching object
-	 * @return boolean
-	 */
-	public function hasCache()
-	{
-		return $this->cache !== null;
 	}
 
 	/**

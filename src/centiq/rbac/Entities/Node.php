@@ -360,7 +360,7 @@ class Node
 	 * @param  boolean $include_self [description]
 	 * @return [type]                [description]
 	 */
-	public function getPath($include_self = false, $separator = '.')
+	public function getPath($include_self = true, $separator = '/')
 	{
 		/**
 		 * Create a new path container

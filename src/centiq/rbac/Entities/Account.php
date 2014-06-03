@@ -100,7 +100,7 @@ class Account
 
 	public function getPermission($identity)
 	{
-		return $this->getPermissions()->get($identifer);
+		return $this->getPermissions()->get($identity);
 	}
 
 	public function hasPermission($identity)

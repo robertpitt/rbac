@@ -26,4 +26,12 @@ class Role extends Node
 		 */
 		parent::__construct($manager, "roles", $id);
 	}
+
+	/**
+	 * Need to assign permissions here
+	 */
+	public function assignPermission(Permission $permission)
+	{
+		$this->getManager()->getStore()->connectPermissionToRole($permission->id(), $this->id());
+	}
 }
