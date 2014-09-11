@@ -348,18 +348,19 @@ class Store
 	 * @param  Integer $role_id    Role ID
 	 * @return boolean             Insert success
 	 */
-	public function connectAccountToRole($account_id, $role_id)
+	public function connectAccountToRole($account_id, $role_id, $context = null)
 	{
 		/**
 		 * Create the statement
 		 */
-		$statement = $this->database->prepare("INSERT IGNORE INTO {$this->prefix}user_roles (account_id, role_id) VALUES (:aid, :rid)");
+		$statement = $this->database->prepare("INSERT IGNORE INTO {$this->prefix}user_roles (account_id, role_id, context_id) VALUES (:aid, :rid, :cid)");
 
 		/**
 		 * Bind parameters
 		 */
 		$statement->bindParam(":aid", $account_id);
 		$statement->bindParam(":rid", $role_id);
+		$statement->bindParam(":cid", $context_id);
 
 		/**
 		 * Execute
@@ -372,19 +373,21 @@ class Store
 	 * @param  Integer $account_id Account ID
 	 * @param  Integer $role_id    Role ID
 	 * @return boolean
+	 * @todo We need to search the role tree to see if there is a parent role the account id.
 	 */
-	public function accountInRole($account_id, $role_id)
+	public function accountInRole($account_id, $role_id, $context_id = null)
 	{
 		/**
 		 * Create statement
 		 */
-		$statement = $this->database->prepare("SELECT account_id FROM {$this->prefix}user_roles WHERE account_id = :aid AND role_id = :rid");
+		$statement = $this->database->prepare("SELECT account_id FROM {$this->prefix}user_roles WHERE account_id = :aid AND role_id = :rid AND context_id = :cid");
 
 		/**
 		 * Bind parameters
 		 */
 		$statement->bindParam(":aid", $account_id);
 		$statement->bindParam(":rid", $role_id);
+		$statement->bindParam(":cid", $context_id);
 
 		/**
 		 * Execute
@@ -401,7 +404,7 @@ class Store
 	 * Get permissions assigned to an account
 	 * @return Array
 	 */
-	public function getAccountPermissions($account_id)
+	public function getAccountPermissions($account_id, $context_id = null)
 	{
 		$statement = $this->database->prepare(
 			"
@@ -412,14 +415,48 @@ class Store
 				INNER JOIN {$this->prefix}role_permissions    AS r_p         ON (r_p.role_id = c_roles.id)
 				INNER JOIN {$this->prefix}permissions         AS p_perms     ON (r_p.permission_id = p_perms.id)
 				INNER JOIN {$this->prefix}permissions         AS permissions ON (permissions.`left` >= p_perms.`left` AND permissions.`right` <= p_perms.`right`)
-				WHERE u_roles.account_id = :id
+				WHERE u_roles.account_id = :aid AND u_roles.context_id = :cid
 			"
 		);
 
 		/**
 		 * Bind account id
 		 */
-		$statement->bindParam(":id", $account_id);
+		$statement->bindParam(":aid", $account_id);
+		$statement->bindParam(":cid", $context_id);
+
+		/**
+		 * Execute the statement
+		 */
+		$statement->execute();
+
+		/**
+		 * Return teh list
+		 */
+		return $statement->fetchAll(\PDO::FETCH_OBJ);
+	}
+
+	/**
+	 * Get permissions assigned to an account
+	 * @return Array
+	 */
+	public function getAccountRoles($account_id, $context_id = null)
+	{
+		$statement = $this->database->prepare(
+			"
+				SELECT rbac_roles.*
+				FROM rbac_roles
+				LEFT JOIN rbac_user_roles
+				ON rbac_user_roles.role_id = rbac_roles.id
+				WHERE account_id = :aid AND rbac_user_roles.context_id = :cid;
+			"
+		);
+
+		/**
+		 * Bind account id
+		 */
+		$statement->bindParam(":aid", $account_id);
+		$statement->bindParam(":cid", $context_id);
 
 		/**
 		 * Execute the statement

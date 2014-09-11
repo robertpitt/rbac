@@ -321,11 +321,58 @@ class Node
 		/**
 		 * Map the list of identifers into new objects
 		 */
-		return array_map(function($node){
+		$results = array_map(function($node){
 
 			return new self($this->getManager(), $this->type(), $node);
 
 		}, $this->getManager()->getStore()->getChildNodes($this->type(), $this->id()));
+
+		/**
+		 * If we have depth then return the depth
+		 */
+		if(!is_numeric($depth))
+		{
+			return $results;
+		}
+		
+
+		return $this->filterNodeDepth($results, $depth);
+	}
+
+	public function filterNodeDepth($nodes, $depth)
+	{
+	    if(empty($nodes) || $depth === 0)
+	    {
+	        return array();
+	    }
+
+	    $newNodes = array();
+	    $stack = array();
+	    $level = 0;
+
+	    foreach($nodes as $node)
+	    {
+	        $parent = end($stack);
+	        while($parent && $node->left() > $parent->right())
+	        {
+	            array_pop($stack);
+	            $parent = end($stack);
+	            $level--;
+	        }
+
+	        if($level < $depth)
+	        {
+	            $newNodes[] = $node;
+	        }
+
+	        if(($node->right() - $node->left()) > 1)
+	        {
+	            array_push($stack, $node);
+	            $level++;
+	        }
+	    }
+
+	    return $newNodes;
 	}
 
 	/**

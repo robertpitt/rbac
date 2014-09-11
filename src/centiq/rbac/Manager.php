@@ -124,8 +124,8 @@ class Manager
 	 * @param  Int $identity Account Identification
 	 * @return Entities\Account An account object
 	 */
-	public function getAccount($identity)
+	public function getAccount($identity, $context = null)
 	{
-		return new Entities\Account($this, $identity);
+		return new Entities\Account($this, $identity, $context);
 	}
 }

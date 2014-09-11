@@ -21,6 +21,12 @@ class Account
 	protected $identity;
 
 	/**
+	 * Context id
+	 * @var Integer
+	 */
+	protected $context;
+
+	/**
 	 * Permissions list
 	 * @var \Centiq\RBAC\Collections\Permissions
 	 */
@@ -37,7 +43,7 @@ class Account
 	 * @param RBAC    $rbac   Core RBAC Instnace
 	 * @param Integer $id User edentity
 	 */
-	public function __construct(\Centiq\RBAC\Manager $manager, $id)
+	public function __construct(\Centiq\RBAC\Manager $manager, $id,  $context = null)
 	{
 		/**
 		 * Set the manager object.
@@ -52,11 +58,25 @@ class Account
 		$this->id = $id;
 
 		/**
+		 * Set hte context
+		 * @var Integer
+		 */
+		$this->context = $context;
+
+		/**
 		 * Fetch the permissions
 		 */
 		$this->permissions = new \Centiq\RBAC\Collections\Permissions(
 			$this->getManager(),
-			$this->getManager()->getStore()->getAccountPermissions($this->id())
+			$this->getManager()->getStore()->getAccountPermissions($this->id(), $this->context())
+		);
+
+		/**
+		 * Fetch the roles
+		 */
+		$this->roles = new \Centiq\RBAC\Collections\Roles(
+			$this->getManager(),
+			$this->getManager()->getStore()->getAccountRoles($this->id(), $this->context())
 		);
 	}
 
@@ -67,6 +87,15 @@ class Account
 	public function id()
 	{
 		return $this->id;
+	}
+
+	/**
+	 * Fetch the context
+	 * @return Integer
+	 */
+	public function context()
+	{
+		return $this->context;
 	}
 
 	/**
@@ -83,9 +112,9 @@ class Account
 	 * @param  Role    $role Role Object
 	 * @return boolean
 	 */
-	public function hasRole(Role $role)
+	public function hasRole(Node $role)
 	{
-		return $this->getManager()->getStore()->accountInRole($this->id(), $role->id());
+		return $this->getManager()->getStore()->accountInRole($this->id(), $role->id(), $this->context());
 	}
 
 	public function assignRole(Role $role)
@@ -96,6 +125,11 @@ class Account
 	public function getPermissions()
 	{
 		return $this->permissions;
+	}
+
+	public function getRoles()
+	{
+		return $this->roles;
 	}
 
 	public function getPermission($identity)
