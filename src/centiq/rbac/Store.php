@@ -348,7 +348,7 @@ class Store
 	 * @param  Integer $role_id    Role ID
 	 * @return boolean             Insert success
 	 */
-	public function connectAccountToRole($account_id, $role_id, $context = null)
+	public function connectAccountToRole($account_id, $role_id, $context_id = null)
 	{
 		/**
 		 * Create the statement
@@ -361,6 +361,8 @@ class Store
 		$statement->bindParam(":aid", $account_id);
 		$statement->bindParam(":rid", $role_id);
 		$statement->bindParam(":cid", $context_id);
+
+		// die(implode("|", array($account_id, $role_id, $context_id)));
 
 		/**
 		 * Execute
