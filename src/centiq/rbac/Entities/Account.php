@@ -119,7 +119,20 @@ class Account
 
 	public function assignRole(Role $role)
 	{
-		return $this->getManager()->getStore()->connectAccountToRole($this->id(), $role->id());
+		return $this->getManager()->getStore()->connectAccountToRole(
+			$this->id(), 
+			$role->id(), 
+			$this->context()
+		);
+	}
+
+	public function removeRole(Role $role)
+	{
+		return $this->getManager()->getStore()->disconnectAccountToRole(
+			$this->id(), 
+			$role->id(), 
+			$this->context()
+		);
 	}
 
 	public function getPermissions()

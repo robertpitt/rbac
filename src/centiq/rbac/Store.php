@@ -371,6 +371,34 @@ class Store
 	}
 
 	/**
+	 * Link account identifer to a role identifer
+	 * @param  Integer $account_id Account Id
+	 * @param  Integer $role_id    Role ID
+	 * @return boolean             Insert success
+	 */
+	public function disconnectAccountToRole($account_id, $role_id, $context_id = null)
+	{
+		/**
+		 * Create the statement
+		 */
+		$statement = $this->database->prepare("DELETE FROM {$this->prefix}user_roles WHERE account_id = :aid AND role_id = :rid AND context_id = :cid");
+
+		/**
+		 * Bind parameters
+		 */
+		$statement->bindParam(":aid", $account_id);
+		$statement->bindParam(":rid", $role_id);
+		$statement->bindParam(":cid", $context_id);
+
+		// die(implode("|", array($account_id, $role_id, $context_id)));
+
+		/**
+		 * Execute
+		 */
+		return $statement->execute();
+	}
+
+	/**
 	 * Check to see if an account is conencted to a role
 	 * @param  Integer $account_id Account ID
 	 * @param  Integer $role_id    Role ID
