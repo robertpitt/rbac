@@ -12,7 +12,7 @@ namespace Centiq\RBAC\Collections;
 /**
  * Base node class, used primaraly for roles and permissions
  */
-class Collection implements \Iterator, \ArrayAccess, \Countable
+class Collection implements \Iterator, \ArrayAccess, \Countable, \JsonSerializable
 {
 	/**
 	 * Objects
@@ -77,4 +77,9 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
 	{
 		return count($this->__entities__);
 	}
+
+    public function jsonSerialize()
+    {
+        return $this->__entities__;
+    }
 }

@@ -12,7 +12,7 @@ namespace Centiq\RBAC\Entities;
 /**
  * Base node class, used primaraly for roles and permissions
  */
-class Node
+class Node implements \JsonSerializable
 {
 	/**
 	 * Manager Instance
@@ -398,7 +398,9 @@ class Node
 	 */
 	public function getParent()
 	{
-		return end($this->getAncestors());
+		$ancestors = $this->getAncestors();
+
+		return end($ancestors);
 	}
 
 	/**
@@ -467,5 +469,19 @@ class Node
 		}
 
 		return $this->getManager()->getStore()->deleteNode($this->type(), $this->id(), true);
+	}
+
+	public function jsonSerialize()
+	{
+		return array(
+			"id"			=> $this->id(),
+			"name" 			=> $this->name(),
+			"description"	=> $this->description(),
+			"type" 			=> $this->type(),
+			"root" 			=> $this->isRoot(),
+			"path" 			=> $this->getPath(),
+			"parent" 		=> $this->getParent()->id(),
+			"children" 		=> $this->getChildCount()
+		);
 	}
 }
