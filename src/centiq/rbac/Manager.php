@@ -30,12 +30,12 @@ class Manager
 	/**
 	 * Root Role identifier
 	 */
-	protected $root_role_id = 1;
+	protected $root_role_id = 'root';
 
 	/**
 	 * Root Permission identifier
 	 */
-	protected $root_permission_id = 1;
+	protected $root_permission_id = 'root';
 
 	/**
 	 * Root Role
