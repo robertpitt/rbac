@@ -449,7 +449,7 @@ class Node implements \JsonSerializable
 		/**
 		 * Return a wrapper class for the new node
 		 */
-		return new self($this->getManager(), $this->type(), $node);
+		return new static($this->getManager(), $node);
 	}
 
 	/**
