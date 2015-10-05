@@ -436,6 +436,7 @@ class Store
 	 */
 	public function getAccountPermissions($account_id, $context_id = null)
 	{
+		$context = $context_id ? '= :cid' : 'IS NULL';
 		$statement = $this->database->prepare(
 			"
 				SELECT permissions.*
@@ -445,7 +446,7 @@ class Store
 				INNER JOIN {$this->prefix}role_permissions    AS r_p         ON (r_p.role_id = c_roles.id)
 				INNER JOIN {$this->prefix}permissions         AS p_perms     ON (r_p.permission_id = p_perms.id)
 				INNER JOIN {$this->prefix}permissions         AS permissions ON (permissions.`left` >= p_perms.`left` AND permissions.`right` <= p_perms.`right`)
-				WHERE u_roles.account_id = :aid AND u_roles.context_id = :cid
+				WHERE u_roles.account_id = :aid AND u_roles.context_id $context
 			"
 		);
 
@@ -453,7 +454,7 @@ class Store
 		 * Bind account id
 		 */
 		$statement->bindParam(":aid", $account_id);
-		$statement->bindParam(":cid", $context_id);
+		$context_id == null ?: $statement->bindParam(":cid", $context_id);
 
 		/**
 		 * Execute the statement
@@ -472,13 +473,14 @@ class Store
 	 */
 	public function getAccountRoles($account_id, $context_id = null)
 	{
+		$context = $context_id ? '= :cid' : 'IS NULL';
 		$statement = $this->database->prepare(
 			"
 				SELECT rbac_roles.*
 				FROM rbac_roles
 				LEFT JOIN rbac_user_roles
 				ON rbac_user_roles.role_id = rbac_roles.id
-				WHERE account_id = :aid AND rbac_user_roles.context_id = :cid;
+				WHERE account_id = :aid AND rbac_user_roles.context_id {$context};
 			"
 		);
 
@@ -486,7 +488,7 @@ class Store
 		 * Bind account id
 		 */
 		$statement->bindParam(":aid", $account_id);
-		$statement->bindParam(":cid", $context_id);
+		$context_id == null ?: $statement->bindParam(":cid", $context_id);
 
 		/**
 		 * Execute the statement
